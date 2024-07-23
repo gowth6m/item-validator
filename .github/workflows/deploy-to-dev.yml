@@ -1,0 +1,13 @@
+name: Deploy to Dev
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deployment.yml
+    secrets: inherit
+    with:
+      environment: dev

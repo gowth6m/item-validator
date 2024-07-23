@@ -1,0 +1,46 @@
+name: CDK Deployment
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  REGION: ${{ vars.REGION }}
+  ACCOUNT_ID: ${{ vars.ACCOUNT_ID }}
+  STAGE: ${{ vars.STAGE }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install AWS CDK
+        run: npm install -g aws-cdk
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: cdk
+
+      - name: Deploy CDK stack
+        run: |
+          npm run build && cdk synth && cdk deploy Backend --require-approval never
+        working-directory: cdk
